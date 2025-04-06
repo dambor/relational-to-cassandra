@@ -1,0 +1,689 @@
+{
+  "tables": [
+    {
+      "name": "users",
+      "columns": [
+        {"name": "user_id", "type": "uuid", "primary_key": true},
+        {"name": "username", "type": "varchar(50)", "nullable": false},
+        {"name": "email", "type": "varchar(100)", "nullable": false},
+        {"name": "password_hash", "type": "varchar(255)", "nullable": false},
+        {"name": "first_name", "type": "varchar(50)"},
+        {"name": "last_name", "type": "varchar(50)"},
+        {"name": "date_of_birth", "type": "date"},
+        {"name": "phone_number", "type": "varchar(20)"},
+        {"name": "created_at", "type": "timestamp", "nullable": false},
+        {"name": "last_login", "type": "timestamp"},
+        {"name": "account_status", "type": "varchar(20)", "nullable": false}
+      ]
+    },
+    {
+      "name": "user_addresses",
+      "columns": [
+        {"name": "address_id", "type": "uuid", "primary_key": true},
+        {"name": "user_id", "type": "uuid", "nullable": false},
+        {"name": "address_type", "type": "varchar(20)", "nullable": false},
+        {"name": "is_default", "type": "boolean", "nullable": false},
+        {"name": "street_address", "type": "varchar(100)", "nullable": false},
+        {"name": "apartment", "type": "varchar(50)"},
+        {"name": "city", "type": "varchar(50)", "nullable": false},
+        {"name": "state", "type": "varchar(50)", "nullable": false},
+        {"name": "postal_code", "type": "varchar(20)", "nullable": false},
+        {"name": "country", "type": "varchar(50)", "nullable": false},
+        {"name": "created_at", "type": "timestamp", "nullable": false},
+        {"name": "updated_at", "type": "timestamp", "nullable": false}
+      ],
+      "foreign_keys": [
+        {
+          "column": "user_id",
+          "references": {
+            "table": "users",
+            "column": "user_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "categories",
+      "columns": [
+        {"name": "category_id", "type": "uuid", "primary_key": true},
+        {"name": "parent_category_id", "type": "uuid"},
+        {"name": "name", "type": "varchar(50)", "nullable": false},
+        {"name": "description", "type": "text"},
+        {"name": "image_url", "type": "varchar(255)"},
+        {"name": "is_active", "type": "boolean", "nullable": false},
+        {"name": "created_at", "type": "timestamp", "nullable": false},
+        {"name": "updated_at", "type": "timestamp", "nullable": false}
+      ],
+      "foreign_keys": [
+        {
+          "column": "parent_category_id",
+          "references": {
+            "table": "categories",
+            "column": "category_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "products",
+      "columns": [
+        {"name": "product_id", "type": "uuid", "primary_key": true},
+        {"name": "seller_id", "type": "uuid", "nullable": false},
+        {"name": "name", "type": "varchar(100)", "nullable": false},
+        {"name": "description", "type": "text", "nullable": false},
+        {"name": "price", "type": "decimal(10,2)", "nullable": false},
+        {"name": "currency", "type": "varchar(3)", "nullable": false},
+        {"name": "inventory_count", "type": "int", "nullable": false},
+        {"name": "is_available", "type": "boolean", "nullable": false},
+        {"name": "weight", "type": "decimal(8,2)"},
+        {"name": "weight_unit", "type": "varchar(10)"},
+        {"name": "created_at", "type": "timestamp", "nullable": false},
+        {"name": "updated_at", "type": "timestamp", "nullable": false}
+      ],
+      "foreign_keys": [
+        {
+          "column": "seller_id",
+          "references": {
+            "table": "users",
+            "column": "user_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "product_categories",
+      "columns": [
+        {"name": "product_id", "type": "uuid", "primary_key": true},
+        {"name": "category_id", "type": "uuid", "primary_key": true},
+        {"name": "is_primary", "type": "boolean", "nullable": false}
+      ],
+      "foreign_keys": [
+        {
+          "column": "product_id",
+          "references": {
+            "table": "products",
+            "column": "product_id"
+          }
+        },
+        {
+          "column": "category_id",
+          "references": {
+            "table": "categories",
+            "column": "category_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "product_images",
+      "columns": [
+        {"name": "image_id", "type": "uuid", "primary_key": true},
+        {"name": "product_id", "type": "uuid", "nullable": false},
+        {"name": "url", "type": "varchar(255)", "nullable": false},
+        {"name": "alt_text", "type": "varchar(100)"},
+        {"name": "display_order", "type": "int", "nullable": false},
+        {"name": "is_primary", "type": "boolean", "nullable": false},
+        {"name": "created_at", "type": "timestamp", "nullable": false}
+      ],
+      "foreign_keys": [
+        {
+          "column": "product_id",
+          "references": {
+            "table": "products",
+            "column": "product_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "product_attributes",
+      "columns": [
+        {"name": "attribute_id", "type": "uuid", "primary_key": true},
+        {"name": "product_id", "type": "uuid", "nullable": false},
+        {"name": "attribute_name", "type": "varchar(50)", "nullable": false},
+        {"name": "attribute_value", "type": "varchar(255)", "nullable": false}
+      ],
+      "foreign_keys": [
+        {
+          "column": "product_id",
+          "references": {
+            "table": "products",
+            "column": "product_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "product_variants",
+      "columns": [
+        {"name": "variant_id", "type": "uuid", "primary_key": true},
+        {"name": "product_id", "type": "uuid", "nullable": false},
+        {"name": "sku", "type": "varchar(50)", "nullable": false},
+        {"name": "variant_name", "type": "varchar(100)", "nullable": false},
+        {"name": "price_adjustment", "type": "decimal(10,2)", "nullable": false},
+        {"name": "inventory_count", "type": "int", "nullable": false},
+        {"name": "is_available", "type": "boolean", "nullable": false},
+        {"name": "created_at", "type": "timestamp", "nullable": false},
+        {"name": "updated_at", "type": "timestamp", "nullable": false}
+      ],
+      "foreign_keys": [
+        {
+          "column": "product_id",
+          "references": {
+            "table": "products",
+            "column": "product_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "variant_attributes",
+      "columns": [
+        {"name": "variant_id", "type": "uuid", "primary_key": true},
+        {"name": "attribute_name", "type": "varchar(50)", "primary_key": true},
+        {"name": "attribute_value", "type": "varchar(255)", "nullable": false}
+      ],
+      "foreign_keys": [
+        {
+          "column": "variant_id",
+          "references": {
+            "table": "product_variants",
+            "column": "variant_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "carts",
+      "columns": [
+        {"name": "cart_id", "type": "uuid", "primary_key": true},
+        {"name": "user_id", "type": "uuid"},
+        {"name": "session_id", "type": "varchar(100)"},
+        {"name": "created_at", "type": "timestamp", "nullable": false},
+        {"name": "updated_at", "type": "timestamp", "nullable": false},
+        {"name": "status", "type": "varchar(20)", "nullable": false}
+      ],
+      "foreign_keys": [
+        {
+          "column": "user_id",
+          "references": {
+            "table": "users",
+            "column": "user_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "cart_items",
+      "columns": [
+        {"name": "cart_item_id", "type": "uuid", "primary_key": true},
+        {"name": "cart_id", "type": "uuid", "nullable": false},
+        {"name": "product_id", "type": "uuid", "nullable": false},
+        {"name": "variant_id", "type": "uuid"},
+        {"name": "quantity", "type": "int", "nullable": false},
+        {"name": "price_at_addition", "type": "decimal(10,2)", "nullable": false},
+        {"name": "added_at", "type": "timestamp", "nullable": false}
+      ],
+      "foreign_keys": [
+        {
+          "column": "cart_id",
+          "references": {
+            "table": "carts",
+            "column": "cart_id"
+          }
+        },
+        {
+          "column": "product_id",
+          "references": {
+            "table": "products",
+            "column": "product_id"
+          }
+        },
+        {
+          "column": "variant_id",
+          "references": {
+            "table": "product_variants",
+            "column": "variant_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "orders",
+      "columns": [
+        {"name": "order_id", "type": "uuid", "primary_key": true},
+        {"name": "user_id", "type": "uuid", "nullable": false},
+        {"name": "cart_id", "type": "uuid"},
+        {"name": "order_date", "type": "timestamp", "nullable": false},
+        {"name": "total_amount", "type": "decimal(10,2)", "nullable": false},
+        {"name": "tax_amount", "type": "decimal(10,2)", "nullable": false},
+        {"name": "shipping_amount", "type": "decimal(10,2)", "nullable": false},
+        {"name": "discount_amount", "type": "decimal(10,2)", "nullable": false},
+        {"name": "currency", "type": "varchar(3)", "nullable": false},
+        {"name": "order_status", "type": "varchar(20)", "nullable": false},
+        {"name": "payment_status", "type": "varchar(20)", "nullable": false},
+        {"name": "shipping_address_id", "type": "uuid", "nullable": false},
+        {"name": "billing_address_id", "type": "uuid", "nullable": false},
+        {"name": "shipping_method", "type": "varchar(50)", "nullable": false},
+        {"name": "tracking_number", "type": "varchar(100)"},
+        {"name": "estimated_delivery", "type": "date"},
+        {"name": "notes", "type": "text"}
+      ],
+      "foreign_keys": [
+        {
+          "column": "user_id",
+          "references": {
+            "table": "users",
+            "column": "user_id"
+          }
+        },
+        {
+          "column": "cart_id",
+          "references": {
+            "table": "carts",
+            "column": "cart_id"
+          }
+        },
+        {
+          "column": "shipping_address_id",
+          "references": {
+            "table": "user_addresses",
+            "column": "address_id"
+          }
+        },
+        {
+          "column": "billing_address_id",
+          "references": {
+            "table": "user_addresses",
+            "column": "address_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "order_items",
+      "columns": [
+        {"name": "order_item_id", "type": "uuid", "primary_key": true},
+        {"name": "order_id", "type": "uuid", "nullable": false},
+        {"name": "product_id", "type": "uuid", "nullable": false},
+        {"name": "variant_id", "type": "uuid"},
+        {"name": "quantity", "type": "int", "nullable": false},
+        {"name": "price", "type": "decimal(10,2)", "nullable": false},
+        {"name": "discount", "type": "decimal(10,2)", "nullable": false},
+        {"name": "tax", "type": "decimal(10,2)", "nullable": false},
+        {"name": "total", "type": "decimal(10,2)", "nullable": false},
+        {"name": "item_status", "type": "varchar(20)", "nullable": false}
+      ],
+      "foreign_keys": [
+        {
+          "column": "order_id",
+          "references": {
+            "table": "orders",
+            "column": "order_id"
+          }
+        },
+        {
+          "column": "product_id",
+          "references": {
+            "table": "products",
+            "column": "product_id"
+          }
+        },
+        {
+          "column": "variant_id",
+          "references": {
+            "table": "product_variants",
+            "column": "variant_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "payments",
+      "columns": [
+        {"name": "payment_id", "type": "uuid", "primary_key": true},
+        {"name": "order_id", "type": "uuid", "nullable": false},
+        {"name": "payment_method", "type": "varchar(50)", "nullable": false},
+        {"name": "payment_provider", "type": "varchar(50)", "nullable": false},
+        {"name": "transaction_id", "type": "varchar(100)"},
+        {"name": "amount", "type": "decimal(10,2)", "nullable": false},
+        {"name": "currency", "type": "varchar(3)", "nullable": false},
+        {"name": "status", "type": "varchar(20)", "nullable": false},
+        {"name": "created_at", "type": "timestamp", "nullable": false},
+        {"name": "updated_at", "type": "timestamp", "nullable": false}
+      ],
+      "foreign_keys": [
+        {
+          "column": "order_id",
+          "references": {
+            "table": "orders",
+            "column": "order_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reviews",
+      "columns": [
+        {"name": "review_id", "type": "uuid", "primary_key": true},
+        {"name": "product_id", "type": "uuid", "nullable": false},
+        {"name": "user_id", "type": "uuid", "nullable": false},
+        {"name": "order_item_id", "type": "uuid"},
+        {"name": "rating", "type": "int", "nullable": false},
+        {"name": "title", "type": "varchar(100)"},
+        {"name": "comment", "type": "text"},
+        {"name": "is_verified_purchase", "type": "boolean", "nullable": false},
+        {"name": "created_at", "type": "timestamp", "nullable": false},
+        {"name": "updated_at", "type": "timestamp", "nullable": false},
+        {"name": "helpful_votes", "type": "int", "nullable": false}
+      ],
+      "foreign_keys": [
+        {
+          "column": "product_id",
+          "references": {
+            "table": "products",
+            "column": "product_id"
+          }
+        },
+        {
+          "column": "user_id",
+          "references": {
+            "table": "users",
+            "column": "user_id"
+          }
+        },
+        {
+          "column": "order_item_id",
+          "references": {
+            "table": "order_items",
+            "column": "order_item_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "review_images",
+      "columns": [
+        {"name": "image_id", "type": "uuid", "primary_key": true},
+        {"name": "review_id", "type": "uuid", "nullable": false},
+        {"name": "url", "type": "varchar(255)", "nullable": false},
+        {"name": "created_at", "type": "timestamp", "nullable": false}
+      ],
+      "foreign_keys": [
+        {
+          "column": "review_id",
+          "references": {
+            "table": "reviews",
+            "column": "review_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "wishlist",
+      "columns": [
+        {"name": "wishlist_id", "type": "uuid", "primary_key": true},
+        {"name": "user_id", "type": "uuid", "nullable": false},
+        {"name": "name", "type": "varchar(100)", "nullable": false},
+        {"name": "is_public", "type": "boolean", "nullable": false},
+        {"name": "created_at", "type": "timestamp", "nullable": false},
+        {"name": "updated_at", "type": "timestamp", "nullable": false}
+      ],
+      "foreign_keys": [
+        {
+          "column": "user_id",
+          "references": {
+            "table": "users",
+            "column": "user_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "wishlist_items",
+      "columns": [
+        {"name": "wishlist_id", "type": "uuid", "primary_key": true},
+        {"name": "product_id", "type": "uuid", "primary_key": true},
+        {"name": "added_at", "type": "timestamp", "nullable": false},
+        {"name": "notes", "type": "text"}
+      ],
+      "foreign_keys": [
+        {
+          "column": "wishlist_id",
+          "references": {
+            "table": "wishlist",
+            "column": "wishlist_id"
+          }
+        },
+        {
+          "column": "product_id",
+          "references": {
+            "table": "products",
+            "column": "product_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "promotions",
+      "columns": [
+        {"name": "promotion_id", "type": "uuid", "primary_key": true},
+        {"name": "name", "type": "varchar(100)", "nullable": false},
+        {"name": "description", "type": "text"},
+        {"name": "discount_type", "type": "varchar(20)", "nullable": false},
+        {"name": "discount_value", "type": "decimal(10,2)", "nullable": false},
+        {"name": "start_date", "type": "timestamp", "nullable": false},
+        {"name": "end_date", "type": "timestamp", "nullable": false},
+        {"name": "is_active", "type": "boolean", "nullable": false},
+        {"name": "minimum_order_amount", "type": "decimal(10,2)"},
+        {"name": "usage_limit", "type": "int"},
+        {"name": "created_at", "type": "timestamp", "nullable": false},
+        {"name": "updated_at", "type": "timestamp", "nullable": false}
+      ]
+    },
+    {
+      "name": "promotion_categories",
+      "columns": [
+        {"name": "promotion_id", "type": "uuid", "primary_key": true},
+        {"name": "category_id", "type": "uuid", "primary_key": true}
+      ],
+      "foreign_keys": [
+        {
+          "column": "promotion_id",
+          "references": {
+            "table": "promotions",
+            "column": "promotion_id"
+          }
+        },
+        {
+          "column": "category_id",
+          "references": {
+            "table": "categories",
+            "column": "category_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "promotion_products",
+      "columns": [
+        {"name": "promotion_id", "type": "uuid", "primary_key": true},
+        {"name": "product_id", "type": "uuid", "primary_key": true}
+      ],
+      "foreign_keys": [
+        {
+          "column": "promotion_id",
+          "references": {
+            "table": "promotions",
+            "column": "promotion_id"
+          }
+        },
+        {
+          "column": "product_id",
+          "references": {
+            "table": "products",
+            "column": "product_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "coupons",
+      "columns": [
+        {"name": "coupon_id", "type": "uuid", "primary_key": true},
+        {"name": "code", "type": "varchar(50)", "nullable": false},
+        {"name": "description", "type": "text"},
+        {"name": "discount_type", "type": "varchar(20)", "nullable": false},
+        {"name": "discount_value", "type": "decimal(10,2)", "nullable": false},
+        {"name": "minimum_order_amount", "type": "decimal(10,2)"},
+        {"name": "is_single_use", "type": "boolean", "nullable": false},
+        {"name": "is_first_order_only", "type": "boolean", "nullable": false},
+        {"name": "start_date", "type": "timestamp", "nullable": false},
+        {"name": "end_date", "type": "timestamp", "nullable": false},
+        {"name": "is_active", "type": "boolean", "nullable": false},
+        {"name": "usage_limit", "type": "int"},
+        {"name": "usage_count", "type": "int", "nullable": false},
+        {"name": "created_at", "type": "timestamp", "nullable": false},
+        {"name": "updated_at", "type": "timestamp", "nullable": false}
+      ]
+    },
+    {
+      "name": "coupon_usages",
+      "columns": [
+        {"name": "usage_id", "type": "uuid", "primary_key": true},
+        {"name": "coupon_id", "type": "uuid", "nullable": false},
+        {"name": "user_id", "type": "uuid", "nullable": false},
+        {"name": "order_id", "type": "uuid", "nullable": false},
+        {"name": "used_at", "type": "timestamp", "nullable": false},
+        {"name": "discount_amount", "type": "decimal(10,2)", "nullable": false}
+      ],
+      "foreign_keys": [
+        {
+          "column": "coupon_id",
+          "references": {
+            "table": "coupons",
+            "column": "coupon_id"
+          }
+        },
+        {
+          "column": "user_id",
+          "references": {
+            "table": "users",
+            "column": "user_id"
+          }
+        },
+        {
+          "column": "order_id",
+          "references": {
+            "table": "orders",
+            "column": "order_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "inventory_transactions",
+      "columns": [
+        {"name": "transaction_id", "type": "uuid", "primary_key": true},
+        {"name": "product_id", "type": "uuid", "nullable": false},
+        {"name": "variant_id", "type": "uuid"},
+        {"name": "transaction_type", "type": "varchar(20)", "nullable": false},
+        {"name": "quantity", "type": "int", "nullable": false},
+        {"name": "reference_id", "type": "uuid"},
+        {"name": "reference_type", "type": "varchar(50)"},
+        {"name": "notes", "type": "text"},
+        {"name": "created_at", "type": "timestamp", "nullable": false},
+        {"name": "created_by", "type": "uuid", "nullable": false}
+      ],
+      "foreign_keys": [
+        {
+          "column": "product_id",
+          "references": {
+            "table": "products",
+            "column": "product_id"
+          }
+        },
+        {
+          "column": "variant_id",
+          "references": {
+            "table": "product_variants",
+            "column": "variant_id"
+          }
+        },
+        {
+          "column": "created_by",
+          "references": {
+            "table": "users",
+            "column": "user_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "price_history",
+      "columns": [
+        {"name": "history_id", "type": "uuid", "primary_key": true},
+        {"name": "product_id", "type": "uuid", "nullable": false},
+        {"name": "variant_id", "type": "uuid"},
+        {"name": "price", "type": "decimal(10,2)", "nullable": false},
+        {"name": "effective_from", "type": "timestamp", "nullable": false},
+        {"name": "effective_to", "type": "timestamp"},
+        {"name": "created_at", "type": "timestamp", "nullable": false},
+        {"name": "created_by", "type": "uuid", "nullable": false}
+      ],
+      "foreign_keys": [
+        {
+          "column": "product_id",
+          "references": {
+            "table": "products",
+            "column": "product_id"
+          }
+        },
+        {
+          "column": "variant_id",
+          "references": {
+            "table": "product_variants",
+            "column": "variant_id"
+          }
+        },
+        {
+          "column": "created_by",
+          "references": {
+            "table": "users",
+            "column": "user_id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "product_views",
+      "columns": [
+        {"name": "view_id", "type": "uuid", "primary_key": true},
+        {"name": "product_id", "type": "uuid", "nullable": false},
+        {"name": "user_id", "type": "uuid"},
+        {"name": "session_id", "type": "varchar(100)"},
+        {"name": "ip_address", "type": "varchar(45)"},
+        {"name": "user_agent", "type": "varchar(255)"},
+        {"name": "referrer", "type": "varchar(255)"},
+        {"name": "viewed_at", "type": "timestamp", "nullable": false},
+        {"name": "duration_seconds", "type": "int"}
+      ],
+      "foreign_keys": [
+        {
+          "column": "product_id",
+          "references": {
+            "table": "products",
+            "column": "product_id"
+          }
+        },
+        {
+          "column": "user_id",
+          "references": {
+            "table": "users",
+            "column": "user_id"
+          }
+        }
+      ]
+    }
+  ]
+}

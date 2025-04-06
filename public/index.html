@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relational to Cassandra Converter</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.2/lib/codemirror.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.2/theme/dracula.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="#">Relational to Cassandra Converter</a>
+    </div>
+  </nav>
+
+  <div class="container mt-4">
+    <div class="row">
+      <div class="col-12">
+        <div class="card mb-4">
+          <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" id="mainTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="import-tab" data-bs-toggle="tab" data-bs-target="#import" type="button" role="tab" aria-controls="import" aria-selected="true">1. Import Schema</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="convert-tab" data-bs-toggle="tab" data-bs-target="#convert" type="button" role="tab" aria-controls="convert" aria-selected="false">2. Convert Schema</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="deploy-tab" data-bs-toggle="tab" data-bs-target="#deploy" type="button" role="tab" aria-controls="deploy" aria-selected="false">3. Deploy to Cassandra</button>
+              </li>
+            </ul>
+          </div>
+          <div class="card-body">
+            <div class="tab-content" id="mainTabsContent">
+              <!-- Import Schema Tab -->
+              <div class="tab-pane fade show active" id="import" role="tabpanel" aria-labelledby="import-tab">
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="card h-100">
+                      <div class="card-header">
+                        <h5 class="mb-0">Import Options</h5>
+                      </div>
+                      <div class="card-body">
+                        <ul class="nav nav-pills mb-3 flex-column" id="importTabs" role="tablist">
+                          <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="mysql-tab" data-bs-toggle="pill" data-bs-target="#mysql" type="button" role="tab" aria-controls="mysql" aria-selected="true">From MySQL</button>
+                          </li>
+                          <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="upload-tab" data-bs-toggle="pill" data-bs-target="#upload" type="button" role="tab" aria-controls="upload" aria-selected="false">Upload Schema</button>
+                          </li>
+                          <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="manual-tab" data-bs-toggle="pill" data-bs-target="#manual" type="button" role="tab" aria-controls="manual" aria-selected="false">Manual Entry</button>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-8">
+                    <div class="tab-content" id="importTabsContent">
+                      <!-- MySQL Import -->
+                      <div class="tab-pane fade show active" id="mysql" role="tabpanel" aria-labelledby="mysql-tab">
+                        <div class="card">
+                          <div class="card-header">
+                            <h5 class="mb-0">MySQL Connection</h5>
+                          </div>
+                          <div class="card-body">
+                            <form id="mysqlForm">
+                              <div class="row mb-3">
+                                <div class="col-md-6">
+                                  <label for="mysqlHost" class="form-label">Host</label>
+                                  <input type="text" class="form-control" id="mysqlHost" value="localhost" required>
+                                </div>
+                                <div class="col-md-6">
+                                  <label for="mysqlPort" class="form-label">Port</label>
+                                  <input type="number" class="form-control" id="mysqlPort" value="3306" required>
+                                </div>
+                              </div>
+                              <div class="mb-3">
+                                <label for="mysqlDatabase" class="form-label">Database</label>
+                                <input type="text" class="form-control" id="mysqlDatabase" required>
+                              </div>
+                              <div class="row mb-3">
+                                <div class="col-md-6">
+                                  <label for="mysqlUser" class="form-label">Username</label>
+                                  <input type="text" class="form-control" id="mysqlUser" value="root" required>
+                                </div>
+                                <div class="col-md-6">
+                                  <label for="mysqlPassword" class="form-label">Password</label>
+                                  <input type="password" class="form-control" id="mysqlPassword">
+                                </div>
+                              </div>
+                              <div class="d-flex gap-2">
+                                <button type="button" id="testMysqlBtn" class="btn btn-secondary">Test Connection</button>
+                                <button type="button" id="extractMysqlBtn" class="btn btn-primary">Extract Schema</button>
+                              </div>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- Upload Schema -->
+                      <div class="tab-pane fade" id="upload" role="tabpanel" aria-labelledby="upload-tab">
+                        <div class="card">
+                          <div class="card-header">
+                            <h5 class="mb-0">Upload Schema JSON</h5>
+                          </div>
+                          <div class="card-body">
+                            <form id="uploadForm">
+                              <div class="mb-3">
+                                <label for="schemaFile" class="form-label">Schema JSON File</label>
+                                <input class="form-control" type="file" id="schemaFile" accept=".json">
+                                <div class="form-text">Upload a JSON file containing your relational schema.</div>
+                              </div>
+                              <div class="mb-3">
+                                <label for="queriesFile" class="form-label">Query Patterns (Optional)</label>
+                                <input class="form-control" type="file" id="queriesFile" accept=".txt,.sql">
+                                <div class="form-text">Upload a file with common query patterns (one per line).</div>
+                              </div>
+                              <button type="button" id="loadSchemaFileBtn" class="btn btn-primary">Load Schema</button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- Manual Entry -->
+                      <div class="tab-pane fade" id="manual" role="tabpanel" aria-labelledby="manual-tab">
+                        <div class="card">
+                          <div class="card-header">
+                            <h5 class="mb-0">Enter Schema JSON</h5>
+                          </div>
+                          <div class="card-body">
+                            <div class="mb-3">
+                              <label for="manualSchemaEditor" class="form-label">Schema JSON</label>
+                              <div id="manualSchemaEditor" class="form-control code-editor"></div>
+                            </div>
+                            <div class="mb-3">
+                              <label for="manualQueriesEditor" class="form-label">Query Patterns (Optional)</label>
+                              <div id="manualQueriesEditor" class="form-control code-editor"></div>
+                              <div class="form-text">Enter common SQL queries, one per line.</div>
+                            </div>
+                            <button type="button" id="loadManualSchemaBtn" class="btn btn-primary">Load Schema</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Convert Schema Tab -->
+              <div class="tab-pane fade" id="convert" role="tabpanel" aria-labelledby="convert-tab">
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="card mb-3">
+                      <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Relational Schema</h5>
+                        <button type="button" id="editSchemaBtn" class="btn btn-sm btn-outline-secondary">Edit</button>
+                      </div>
+                      <div class="card-body">
+                        <div id="schemaEditor" class="code-editor"></div>
+                      </div>
+                    </div>
+                    <div class="card">
+                      <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Query Patterns</h5>
+                        <button type="button" id="editQueriesBtn" class="btn btn-sm btn-outline-secondary">Edit</button>
+                      </div>
+                      <div class="card-body">
+                        <div id="queriesEditor" class="code-editor"></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-6 d-flex flex-column">
+                    <div class="card mb-3">
+                      <div class="card-header">
+                        <h5 class="mb-0">Conversion</h5>
+                      </div>
+                      <div class="card-body">
+                        <div class="mb-3">
+                          <button type="button" id="convertSchemaBtn" class="btn btn-primary">Convert to Cassandra</button>
+                          <button type="button" id="downloadCqlBtn" class="btn btn-outline-secondary" disabled>Download CQL</button>
+                        </div>
+                        <div class="mb-3">
+                          <div class="progress" style="display:none" id="conversionProgress">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                          </div>
+                        </div>
+                        <div id="conversionStatus"></div>
+                      </div>
+                    </div>
+                    
+                    <div class="card flex-grow-1">
+                      <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs" id="outputTabs" role="tablist">
+                          <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="cql-tab" data-bs-toggle="tab" data-bs-target="#cql" type="button" role="tab" aria-controls="cql" aria-selected="true">CQL Output</button>
+                          </li>
+                          <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab" aria-controls="summary" aria-selected="false">Summary</button>
+                          </li>
+                        </ul>
+                      </div>
+                      <div class="card-body">
+                        <div class="tab-content" id="outputTabsContent">
+                          <div class="tab-pane fade show active" id="cql" role="tabpanel" aria-labelledby="cql-tab">
+                            <div id="cqlEditor" class="code-editor h-100"></div>
+                          </div>
+                          <div class="tab-pane fade" id="summary" role="tabpanel" aria-labelledby="summary-tab">
+                            <div id="summaryEditor" class="code-editor h-100"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Deploy to Cassandra Tab -->
+              <div class="tab-pane fade" id="deploy" role="tabpanel" aria-labelledby="deploy-tab">
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="card">
+                      <div class="card-header">
+                        <h5 class="mb-0">Cassandra Connection</h5>
+                      </div>
+                      <div class="card-body">
+                        <form id="cassandraForm">
+                          <div class="mb-3">
+                            <label for="cassandraContactPoints" class="form-label">Contact Points</label>
+                            <input type="text" class="form-control" id="cassandraContactPoints" value="localhost" required>
+                            <div class="form-text">Comma-separated list of hosts</div>
+                          </div>
+                          <div class="mb-3">
+                            <label for="cassandraDataCenter" class="form-label">Local Data Center</label>
+                            <input type="text" class="form-control" id="cassandraDataCenter" value="datacenter1" required>
+                          </div>
+                          <div class="mb-3">
+                            <label for="cassandraKeyspace" class="form-label">Keyspace</label>
+                            <input type="text" class="form-control" id="cassandraKeyspace" value="converted_schema">
+                            <div class="form-text">Leave blank to use keyspace in CQL script</div>
+                          </div>
+                          <div class="mb-3">
+                            <label for="cassandraUser" class="form-label">Username (optional)</label>
+                            <input type="text" class="form-control" id="cassandraUser">
+                          </div>
+                          <div class="mb-3">
+                            <label for="cassandraPassword" class="form-label">Password (optional)</label>
+                            <input type="password" class="form-control" id="cassandraPassword">
+                          </div>
+                          <div class="d-flex gap-2">
+                            <button type="button" id="testCassandraBtn" class="btn btn-secondary">Test Connection</button>
+                            <button type="button" id="deployCassandraBtn" class="btn btn-primary">Deploy Schema</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-8">
+                    <div class="card mb-3">
+                      <div class="card-header">
+                        <h5 class="mb-0">CQL Deployment Script</h5>
+                      </div>
+                      <div class="card-body">
+                        <div id="deployCqlEditor" class="code-editor"></div>
+                      </div>
+                    </div>
+                    
+                    <div class="card">
+                      <div class="card-header">
+                        <h5 class="mb-0">Deployment Results</h5>
+                      </div>
+                      <div class="card-body">
+                        <div class="mb-3">
+                          <div class="progress" style="display:none" id="deployProgress">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                          </div>
+                        </div>
+                        <div id="deployResults" class="deployment-results"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Templates -->
+  <template id="alertTemplate">
+    <div class="alert alert-dismissible fade show mb-3" role="alert">
+      <span class="alert-message"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  </template>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.2/lib/codemirror.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.2/mode/javascript/javascript.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.2/mode/sql/sql.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.2/mode/markdown/markdown.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
