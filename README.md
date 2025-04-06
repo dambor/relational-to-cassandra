@@ -18,23 +18,17 @@ A web-based tool that converts relational database schemas to optimized Cassandr
 
 ## Installation
 
-1. **Clone the repository**
-   ```
-   git clone https://github.com/yourusername/relational-to-cassandra.git
-   cd relational-to-cassandra
-   ```
-
-2. **Install Node.js dependencies**
+1. **Install Node.js dependencies**
    ```
    npm install
    ```
 
-3. **Install Python dependencies**
+2. **Install Python dependencies**
    ```
    pip install mysql-connector-python cassandra-driver
    ```
 
-4. **Make the Python script executable**
+3. **Make the Python script executable**
    ```
    chmod +x rel_to_cassandra.py
    ```
@@ -73,16 +67,5 @@ examples/complex-ecommerce-schema.json
 examples/ecommerce-queries.txt
 ```
 
-## Troubleshooting
 
-- **MySQL connection issues**: Verify your MySQL server is running and credentials are correct
-- **Conversion errors**: Check that your schema is valid JSON
-- **Deployment failures**: Ensure your Cassandra cluster is running and accessible
 
-## License
-
-MIT
-
----
-
-Created with ❤️ for NoSQL enthusiasts
