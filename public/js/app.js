@@ -163,6 +163,15 @@ document.addEventListener('DOMContentLoaded', function() {
       downloadCql();
     });
 
+    // Add Report button after Download CQL button
+    document.getElementById('downloadCqlBtn').insertAdjacentHTML('afterend', 
+      '<button type="button" id="generateReportBtn" class="btn btn-outline-info ms-2" disabled>Generate Report</button>');
+
+    // Generate Report button
+    document.getElementById('generateReportBtn').addEventListener('click', function() {
+      generateReport(editors);
+    });
+
     // Test Cassandra connection
     document.getElementById('testCassandraBtn').addEventListener('click', function() {
       testCassandraConnection();
@@ -344,6 +353,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         statusDiv.innerHTML = '<div class="alert alert-success">Conversion completed successfully!</div>';
         document.getElementById('downloadCqlBtn').disabled = false;
+        document.getElementById('generateReportBtn').disabled = false;
       } else {
         statusDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.message}. ${data.error || ''}</div>`;
       }
@@ -370,6 +380,79 @@ document.addEventListener('DOMContentLoaded', function() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  }
+
+  // Generate and download schema analysis report
+  function generateReport(editors) {
+    try {
+      // Get current schema and queries
+      const schema = JSON.parse(editors.schemaEditor.getValue());
+      const queries = editors.queriesEditor.getValue();
+      
+      const statusDiv = document.getElementById('conversionStatus');
+      statusDiv.innerHTML = '<div class="alert alert-info">Generating optimization report... This may take a moment.</div>';
+      
+      // Create form data
+      const formData = new FormData();
+      formData.append('schema', JSON.stringify(schema));
+      if (queries) {
+        formData.append('queries', queries);
+      }
+      
+      // Show progress indicator
+      const progressBar = document.getElementById('conversionProgress');
+      progressBar.style.display = 'flex';
+      
+      // Make request to generate report
+      fetch('/api/generate-report', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        progressBar.style.display = 'none';
+        
+        // Check if the response is successful
+        if (!response.ok) {
+          return response.json().then(data => {
+            throw new Error(data.message || 'Failed to generate report');
+          });
+        }
+        
+        // It's a PDF, get filename from Content-Disposition header
+        let filename = 'cassandra_optimization_report.pdf';
+        const disposition = response.headers.get('Content-Disposition');
+        if (disposition && disposition.indexOf('attachment') !== -1) {
+          const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+          const matches = filenameRegex.exec(disposition);
+          if (matches != null && matches[1]) { 
+            filename = matches[1].replace(/['"]/g, '');
+          }
+        }
+        
+        // Convert response to blob
+        return response.blob().then(blob => {
+          // Create object URL
+          const url = window.URL.createObjectURL(blob);
+          
+          // Create temp link and click it to download
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          
+          statusDiv.innerHTML = '<div class="alert alert-success">Report generated and downloaded successfully!</div>';
+        });
+      })
+      .catch(error => {
+        progressBar.style.display = 'none';
+        statusDiv.innerHTML = `<div class="alert alert-danger">Error generating report: ${error.message}</div>`;
+      });
+    } catch (error) {
+      showAlert(`Error parsing schema: ${error.message}`, 'danger');
+    }
   }
 
   // Test Cassandra connection

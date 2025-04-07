@@ -259,6 +259,86 @@ app.post('/api/convert-schema', upload.fields([
   }
 });
 
+// Generate Schema Analysis Report
+app.post('/api/generate-report', upload.fields([
+  { name: 'schemaFile', maxCount: 1 }, 
+  { name: 'queriesFile', maxCount: 1 }
+]), async (req, res) => {
+  try {
+    let schemaContent;
+    
+    // Get schema from file upload or request body
+    if (req.files && req.files.schemaFile && req.files.schemaFile[0]) {
+      schemaContent = req.files.schemaFile[0].buffer.toString('utf8');
+    } else if (req.body.schema) {
+      schemaContent = typeof req.body.schema === 'string' 
+        ? req.body.schema 
+        : JSON.stringify(req.body.schema);
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'No schema provided'
+      });
+    }
+    
+    // Create temporary files
+    const schemaFilePath = await temp.open({ prefix: 'schema-', suffix: '.json' });
+    await fs.writeFile(schemaFilePath.path, schemaContent);
+    
+    let queriesFilePath = null;
+    if (req.files && req.files.queriesFile && req.files.queriesFile[0]) {
+      queriesFilePath = await temp.open({ prefix: 'queries-', suffix: '.txt' });
+      await fs.writeFile(queriesFilePath.path, req.files.queriesFile[0].buffer);
+    } else if (req.body.queries) {
+      queriesFilePath = await temp.open({ prefix: 'queries-', suffix: '.txt' });
+      await fs.writeFile(queriesFilePath.path, req.body.queries);
+    }
+    
+    // Create output file for PDF report
+    const reportFilePath = await temp.open({ prefix: 'report-', suffix: '.pdf' });
+    
+    // Build command
+    let command = `python3 schema_analyzer.py --schema ${schemaFilePath.path} --output ${reportFilePath.path}`;
+    if (queriesFilePath) {
+      command += ` --queries ${queriesFilePath.path}`;
+    }
+    
+    // Run the analysis script
+    exec(command, async (error, stdout, stderr) => {
+      if (error) {
+        return res.status(400).json({
+          success: false,
+          message: 'Report generation failed',
+          error: error.message,
+          stderr
+        });
+      }
+      
+      try {
+        // Read the generated PDF file
+        const pdfContent = await fs.readFile(reportFilePath.path);
+        
+        // Send the PDF as a downloadable file
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=cassandra_optimization_report.pdf');
+        res.send(pdfContent);
+      } catch (readError) {
+        res.status(500).json({
+          success: false,
+          message: 'Failed to read PDF report',
+          error: readError.message
+        });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error during report generation',
+      error: error.message
+    });
+  }
+});
+
 // Deploy to Cassandra
 app.post('/api/deploy-to-cassandra', async (req, res) => {
   const { 
